@@ -7,8 +7,8 @@
   <title>{{{ PRODUCT_NAME }}}</title>
   <link rel="shortcut icon" href="TemplateData/favicon.ico">
   <link rel="stylesheet" href="TemplateData/style.css">
-
-  <script src="TemplateData/index.js"></script>
+  
+  <!-- Yandex Games SDK -->
   <script src="https://yandex.ru/games/sdk/v2"></script>
 </head>
 
@@ -23,12 +23,46 @@
       </div>
     </div>
   </div>
-
+  
   <script>
-    // Initialize Yandex SDK
-    initYaGames();
-  </script>
+	// Initialize Yandex SDK
 
+	  var sdkStatus = 0;
+    var authStatus = 0;
+
+    var player;
+    var lb;
+    
+    YaGames.init().then(_ysdk => {
+      window.ysdk = _ysdk;
+      sdkStatus = 1;
+      initPlayer();
+      initLeaderboards();
+    }).catch(err => {
+      sdkStatus = 0;
+      console.log('Failed to initialize SDK with error:', err);
+    });
+
+    function initPlayer() {
+      ysdk.getPlayer().then(_player => {
+        player = _player;
+        authStatus = player.getMode() === 'lite' ? 0 : 1;
+      }).catch(err => {
+		    authStatus = 0;
+        console.log('Failed to initialize player with error:', err);
+      });
+    }
+
+    function initLeaderboards() {
+      ysdk.getLeaderboards().then(_lb => {
+        lb = _lb;
+      }).catch(err => {
+        console.log('Failed to initialize leaderboards with error:', err);
+      });
+    }
+
+  </script>
+  
   <script>
     // Initialize Unity Instance
     var container = document.querySelector("#unity-container");
@@ -41,15 +75,15 @@
     var config = {
       dataUrl: buildUrl + "/{{{ DATA_FILENAME }}}",
       frameworkUrl: buildUrl + "/{{{ FRAMEWORK_FILENAME }}}",
-      #if USE_WASM
+#if USE_WASM
       codeUrl: buildUrl + "/{{{ CODE_FILENAME }}}",
-      #endif
-      #if MEMORY_FILENAME
+#endif
+#if MEMORY_FILENAME
       memoryUrl: buildUrl + "/{{{ MEMORY_FILENAME }}}",
-      #endif
-      #if SYMBOLS_FILENAME
+#endif
+#if SYMBOLS_FILENAME
       symbolsUrl: buildUrl + "/{{{ SYMBOLS_FILENAME }}}",
-      #endif
+#endif
       streamingAssetsUrl: "StreamingAssets",
       companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
       productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
@@ -60,7 +94,7 @@
 
     var script = document.createElement("script");
     var gameInstance;
-    
+
     script.src = loaderUrl;
     script.onload = () => {
       createUnityInstance(canvas, config, (progress) => {
@@ -75,7 +109,7 @@
 
     document.body.appendChild(script);
   </script>
-
+  
 </body>
 
 </html>
