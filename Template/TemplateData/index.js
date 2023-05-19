@@ -8,6 +8,8 @@ function initYaGames() {
     YaGames.init().then((ysdk) => {
         window.ysdk = ysdk;
         sdkStatus = 1;
+        initPlayer();
+        initLeaderboards();
     }).catch((err) => {
         sdkStatus = 0;
         console.log('Failed to initialize SDK with error:', err);
@@ -45,18 +47,17 @@ function getAuthStatus() {
 function getDevice() {
     var device = ysdk.deviceInfo.type;
     console.log('Detected device:', device);
-    return toUnityString(device);
+    return device;
 }
 
 function getLanguage() {
     var language = ysdk.environment.i18n.lang;
     console.log('Detected language:', language);
-    return toUnityString(language);
+    return language;
 }
 
 function saveData(data) {
-    var dataString = UTF8ToString(data);
-    var dataObject = JSON.parse(dataString);
+    var dataObject = JSON.parse(data);
     player.setData(dataObject).then(() => {
         gameInstance.SendMessage('YandexSDK', 'OnDataSaved');
         console.log('Data saved.');
@@ -77,7 +78,7 @@ function loadData() {
 
 function setLeaderboard(id, value) {
     try {
-        lb.setLeaderboardScore(UTF8ToString(id), value);
+        lb.setLeaderboardScore(id, value);
         console.log('Leaderboard updated.');
     } catch (err) {
         console.log('Failed to update leaderboard with error:', err);
@@ -124,11 +125,4 @@ function showRewardedAdv(reward) {
             }
         }
     });
-}
-
-function toUnityString(value) {
-    var bufferSize = lengthBytesUTF8(value) + 1;
-    var buffer = _malloc(bufferSize);
-    stringToUTF8(value, buffer, bufferSize);
-    return buffer;
 }
